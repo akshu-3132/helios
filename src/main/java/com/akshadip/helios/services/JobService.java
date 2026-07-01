@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -23,11 +24,13 @@ public class JobService {
     private JobRepository jobRepository;
     private CronCalculator cronCalculator;
     private JobMapper jobMapper;
+
     JobService(JobRepository jobRepository, CronCalculator cronCalculator, JobMapper jobMapper) {
         this.jobRepository = jobRepository;
         this.cronCalculator = cronCalculator;
         this.jobMapper = jobMapper;
     }
+
     public JobResponseDto createJob(JobRequestDto jobRequestDto) {
         //create a new job entity
         LocalDateTime now = LocalDateTime.now();
@@ -56,5 +59,12 @@ public class JobService {
     public List<Job> getAllJobs() {
         return jobRepository.findAll();
     }
+
+
+    public void deleteJob(UUID id) {
+        Job job = jobRepository.findById(id).orElseThrow(() -> new RuntimeException("Job not found"));
+        jobRepository.delete(job);
+    }
+
 
 }
