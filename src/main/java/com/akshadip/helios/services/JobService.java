@@ -66,5 +66,8 @@ public class JobService {
         jobRepository.delete(job);
     }
 
+    public void updateJob(Job job) {
+        jobRepository.save(job);
+    }
 
 }
