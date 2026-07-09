@@ -4,6 +4,8 @@ import com.akshadip.helios.dtos.HttpJobPayload;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.kafka.annotation.KafkaHandler;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -31,6 +33,7 @@ public class HttpJobExecutor implements JobExecutor {
                     .body(String.class);
             log.info("Executed job with payload: {}, response: {}", payload, response);
         } catch (Exception e) {
+            e.printStackTrace();
             //TODO - Handle exception, log error, etc.
         }
     }

@@ -1,8 +1,10 @@
 package com.akshadip.helios.services;
 
+import com.akshadip.helios.dtos.JobMessage;
 import com.akshadip.helios.models.Job;
 import com.akshadip.helios.scheduler.cron.CronCalculator;
 import com.akshadip.helios.worker.HttpJobExecutor;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -20,12 +22,15 @@ public class WorkerService {
         this.cronCalculator = cronCalculator;
 
     }
-
-    public void executeJob(Job job) {
+    @KafkaListener(topics = "jobs", groupId = "worker-group")
+    public void executeJob(JobMessage jobMessage) {
+        System.out.println("Received job message: " + jobMessage);
+        Job job = jobService.getJobById(jobMessage.getJobId());
         httpJobExecutor.executeJob(job.getPayload());
         LocalDateTime nextFireAt = cronCalculator.getNextFireTime(job.getCronExpression(), LocalDateTime.now());
         job.setNextFireAt(nextFireAt);
+        job.setLastFireAt(LocalDateTime.now());
         jobService.updateJob(job);
-
     }
+
 }
