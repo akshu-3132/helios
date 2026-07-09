@@ -8,6 +8,7 @@ import com.akshadip.helios.mappers.JobMapper;
 import com.akshadip.helios.models.Job;
 import com.akshadip.helios.repositories.JobRepository;
 import com.akshadip.helios.scheduler.cron.CronCalculator;
+import jakarta.transaction.Transactional;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Service;
@@ -68,6 +69,12 @@ public class JobService {
 
     public void updateJob(Job job) {
         jobRepository.save(job);
+    }
+
+
+    public void updateJobStatus(UUID jobId, JobStatus status){
+        Job job = jobRepository.findById(jobId).orElseThrow(() -> new RuntimeException("Job not found"));
+        job.setStatus(status);
     }
 
 }

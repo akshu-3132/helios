@@ -23,19 +23,15 @@ public class HttpJobExecutor implements JobExecutor {
     }
 
     @Override
-    public void executeJob(String payload) {
-        try {
-            HttpJobPayload httpJobPayload = objectMapper.readValue(payload, HttpJobPayload.class);
-            String response = restClient.get()
-                    .uri(httpJobPayload.getUrl())
-                    .headers(headers -> httpJobPayload.getHeaders().forEach(headers::add))
-                    .retrieve()
-                    .body(String.class);
-            log.info("Executed job with payload: {}, response: {}", payload, response);
-        } catch (Exception e) {
-            e.printStackTrace();
-            //TODO - Handle exception, log error, etc.
-        }
+    public void executeJob(String payload) throws Exception{
+        HttpJobPayload httpJobPayload = objectMapper.readValue(payload, HttpJobPayload.class);
+        String response = restClient.get()
+                .uri(httpJobPayload.getUrl())
+                .headers(headers -> httpJobPayload.getHeaders().forEach(headers::add))
+                .retrieve()
+                .body(String.class);
+        log.info("Executed job with payload: {}, response: {}", payload, response);
     }
-
 }
+
+

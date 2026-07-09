@@ -1,23 +1,30 @@
 package com.akshadip.helios.leader;
 
 import com.akshadip.helios.dtos.JobMessage;
+import com.akshadip.helios.enums.JobStatus;
 import com.akshadip.helios.models.Job;
 
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
+import com.akshadip.helios.services.JobService;
+import com.akshadip.helios.services.OutboxEventService;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Component;
 
 @Component
 public class JobDispatcher {
-    private final KafkaTemplate<String, JobMessage> kafkaTemplate;
+    private final OutboxEventService outboxEventService;
+    private final JobService jobService;
 
-    public JobDispatcher(KafkaTemplate<String, JobMessage> kafkaTemplate) {
-        this.kafkaTemplate = kafkaTemplate;
+    public JobDispatcher(OutboxEventService outboxEventService, JobService jobService) {
+        this.outboxEventService = outboxEventService;
+        this.jobService = jobService;
     }
 
+    @Transactional
     public void dispatchJob(Job job) {
-        JobMessage jobMessage = new JobMessage(job.getId());
-        System.out.println("Dispatching job: " + jobMessage.getJobId());
-        kafkaTemplate.send("jobs",jobMessage.getJobId().toString(),jobMessage);
+        // Create an outbox event
+        outboxEventService.createOutboxEvent(job.getId());
+
+        // update the job status
+        jobService.updateJobStatus(job.getId(), JobStatus.DISPATCHED);
     }
 }
