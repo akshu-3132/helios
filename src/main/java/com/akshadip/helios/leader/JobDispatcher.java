@@ -7,10 +7,13 @@ import com.akshadip.helios.models.Job;
 import com.akshadip.helios.services.JobService;
 import com.akshadip.helios.services.OutboxEventService;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class JobDispatcher {
+    private static final Logger log = LoggerFactory.getLogger(JobDispatcher.class);
     private final OutboxEventService outboxEventService;
     private final JobService jobService;
 
@@ -21,6 +24,7 @@ public class JobDispatcher {
 
     @Transactional
     public void dispatchJob(Job job) {
+        log.info("Dispatching job with ID: {}", job.getId());
         // Create an outbox event
         outboxEventService.createOutboxEvent(job.getId());
 

@@ -4,6 +4,7 @@ import com.akshadip.helios.dtos.JobMessage;
 import com.akshadip.helios.enums.OutboxStatus;
 import com.akshadip.helios.models.OutboxEvent;
 import com.akshadip.helios.services.OutboxEventService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -11,6 +12,10 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
+@ConditionalOnProperty(
+        name="helios.role",
+        havingValue="leader"
+)
 public class OutboxScheduler {
     private final OutboxEventService outboxEventService;
     private final KafkaTemplate<String, JobMessage> kafkaTemplate;
@@ -20,7 +25,7 @@ public class OutboxScheduler {
         this.outboxEventService = outboxEventService;
     }
 
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 20000)
     public void processOutboxEvents() {
         List<OutboxEvent> events = outboxEventService.getPendingOutboxEvents(100);
         for (OutboxEvent event : events) {

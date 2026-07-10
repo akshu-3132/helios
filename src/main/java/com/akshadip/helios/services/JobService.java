@@ -35,22 +35,7 @@ public class JobService {
     public JobResponseDto createJob(JobRequestDto jobRequestDto) {
         //create a new job entity
         LocalDateTime now = LocalDateTime.now();
-        Job job = new Job();
-        job.setId(UUID.randomUUID());
-        job.setName(jobRequestDto.getName());
-        job.setCronExpression(jobRequestDto.getCronExpression());
-        job.setJobType(jobRequestDto.getJobType());
-        job.setPayload(jobRequestDto.getPayload());
-        job.setMaxRetries(jobRequestDto.getMaxRetries());
-        job.setCreatedAt(now);
-        job.setUpdatedAt(now);
-        job.setRetryCount(0);
-        job.setStatus(JobStatus.PENDING);
-        job.setNextFireAt(cronCalculator.getNextFireTime(jobRequestDto.getCronExpression(), now));
-
-        jobRepository.save(job);
-
-        return jobMapper.toJobResponse(job);
+        return getJobResponseDto(now, jobRequestDto);
     }
 
     public Job getJobById(UUID id) {
@@ -75,6 +60,30 @@ public class JobService {
     public void updateJobStatus(UUID jobId, JobStatus status){
         Job job = jobRepository.findById(jobId).orElseThrow(() -> new RuntimeException("Job not found"));
         job.setStatus(status);
+    }
+
+    public List<JobResponseDto> createJobsBulk(List<JobRequestDto> jobRequestDtos) {
+        LocalDateTime now = LocalDateTime.now();
+        return jobRequestDtos.stream().map(jobRequestDto -> {
+            return getJobResponseDto(now, jobRequestDto);
+        }).toList();
+    }
+
+    private JobResponseDto getJobResponseDto(LocalDateTime now, JobRequestDto jobRequestDto) {
+        Job job = new Job();
+        job.setId(UUID.randomUUID());
+        job.setName(jobRequestDto.getName());
+        job.setCronExpression(jobRequestDto.getCronExpression());
+        job.setJobType(jobRequestDto.getJobType());
+        job.setPayload(jobRequestDto.getPayload());
+        job.setMaxRetries(jobRequestDto.getMaxRetries());
+        job.setCreatedAt(now);
+        job.setUpdatedAt(now);
+        job.setRetryCount(0);
+        job.setStatus(JobStatus.PENDING);
+        job.setNextFireAt(cronCalculator.getNextFireTime(jobRequestDto.getCronExpression(), now));
+        jobRepository.save(job);
+        return jobMapper.toJobResponse(job);
     }
 
 }

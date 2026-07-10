@@ -6,6 +6,7 @@ import com.akshadip.helios.models.Job;
 import com.akshadip.helios.services.JobService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -34,8 +35,13 @@ public class JobController {
 
     //Endpoint for deleting a job by id
     @GetMapping("/jobs/delete/{id}")
-    public String deleteJobById(@PathVariable String id){
+    public String deleteJobById(@PathVariable String id) {
         jobService.deleteJob(UUID.fromString(id));
         return "Job with id " + id + " deleted successfully";
+    }
+
+    @PostMapping("/jobs/create/bulk")
+    public List<JobResponseDto> createJobsBulk(@RequestBody java.util.List<JobRequestDto> jobRequestDtos) {
+        return jobService.createJobsBulk(jobRequestDtos);
     }
 }

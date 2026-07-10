@@ -5,14 +5,22 @@ import com.akshadip.helios.enums.JobStatus;
 import com.akshadip.helios.models.Job;
 import com.akshadip.helios.scheduler.cron.CronCalculator;
 import com.akshadip.helios.worker.HttpJobExecutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
 @Component
+@ConditionalOnProperty(
+        name = "helios.role",
+        havingValue = "worker"
+)
 public class WorkerService {
 
+    private static final Logger log = LoggerFactory.getLogger(WorkerService.class);
     private final HttpJobExecutor httpJobExecutor;
     private final CronCalculator cronCalculator;
     private final JobService jobService;
@@ -35,6 +43,7 @@ public class WorkerService {
             job.setLastFireAt(LocalDateTime.now());
             job.setStatus(JobStatus.PENDING);
         } catch (Exception e) {
+            log.info("Job execution failed for job ID: {}, error: {}", job.getId(), e.getMessage());
             job.setRetryCount(job.getRetryCount() + 1);
             if (job.getRetryCount() >= job.getMaxRetries()) {
                 job.setStatus(JobStatus.FAILED);
