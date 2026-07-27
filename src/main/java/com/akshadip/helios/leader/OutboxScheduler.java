@@ -12,21 +12,24 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-@ConditionalOnProperty(
-        name="helios.role",
-        havingValue="leader"
-)
 public class OutboxScheduler {
+    private final LeaderElectionService leaderElectionService;
     private final OutboxEventService outboxEventService;
     private final KafkaTemplate<String, JobMessage> kafkaTemplate;
 
-    public OutboxScheduler(OutboxEventService outboxEventService, KafkaTemplate<String, JobMessage> kafkaTemplate) {
+    public OutboxScheduler(LeaderElectionService leaderElectionService,
+                           OutboxEventService outboxEventService,
+                           KafkaTemplate<String, JobMessage> kafkaTemplate) {
+        this.leaderElectionService = leaderElectionService;
         this.kafkaTemplate = kafkaTemplate;
         this.outboxEventService = outboxEventService;
     }
 
     @Scheduled(fixedRate = 20000)
     public void processOutboxEvents() {
+        if(!leaderElectionService.isLeader()) {
+            return;
+        }
         List<OutboxEvent> events = outboxEventService.getPendingOutboxEvents(100);
         for (OutboxEvent event : events) {
             try {

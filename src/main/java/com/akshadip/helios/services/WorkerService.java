@@ -14,10 +14,6 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 
 @Component
-@ConditionalOnProperty(
-        name = "helios.role",
-        havingValue = "worker"
-)
 public class WorkerService {
 
     private static final Logger log = LoggerFactory.getLogger(WorkerService.class);
