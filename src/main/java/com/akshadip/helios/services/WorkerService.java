@@ -28,7 +28,10 @@ public class WorkerService {
 
     }
 
-    @KafkaListener(topics = "jobs", groupId = "worker-group")
+    @KafkaListener(
+            id = "worker-listener",
+            topics = "jobs",
+            groupId = "worker-group")
     public void executeJob(JobMessage jobMessage) {
         System.out.println("Received job message: " + jobMessage);
         Job job = jobService.getJobById(jobMessage.getJobId());

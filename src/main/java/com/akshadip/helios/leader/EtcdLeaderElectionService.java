@@ -1,6 +1,7 @@
 package com.akshadip.helios.leader;
 
 
+import com.akshadip.helios.services.KafkaListenerService;
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.Election;
@@ -18,7 +19,9 @@ import java.util.concurrent.CompletableFuture;
 @Service
 public class EtcdLeaderElectionService implements LeaderElectionService {
     private Client client;
-    public EtcdLeaderElectionService(Client client) {
+    private final KafkaListenerService kafkaListenerService;
+    public EtcdLeaderElectionService(Client client,KafkaListenerService kafkaListenerService) {
+        this.kafkaListenerService = kafkaListenerService;
         this.client = client;
     }
 
@@ -53,11 +56,13 @@ public class EtcdLeaderElectionService implements LeaderElectionService {
                 @Override
                 public void onError(Throwable t) {
                     System.err.println("Lease renewal failed: " + t.getMessage());
+                    kafkaListenerService.startWorker();
                 }
 
                 @Override
                 public void onCompleted() {
                     System.out.println("Lease renewal completed");
+                    kafkaListenerService.startWorker();
                 }
             });
 
@@ -70,6 +75,7 @@ public class EtcdLeaderElectionService implements LeaderElectionService {
                     .thenAccept(response -> {
                         System.out.println("Successfully elected as leader with instance ID: " + instanceId);
                         leader = true;
+                        kafkaListenerService.stopWorker();
                     });
         } catch (Exception e) {
             throw new RuntimeException("Failed to elect leader", e);
