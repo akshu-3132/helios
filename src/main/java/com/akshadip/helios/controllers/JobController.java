@@ -33,8 +33,7 @@ public class JobController {
         return jobService.getAllJobs();
     }
 
-    //Endpoint for deleting a job by id
-    @GetMapping("/jobs/delete/{id}")
+    @DeleteMapping("/jobs/{id}")
     public String deleteJobById(@PathVariable String id) {
         jobService.deleteJob(UUID.fromString(id));
         return "Job with id " + id + " deleted successfully";
