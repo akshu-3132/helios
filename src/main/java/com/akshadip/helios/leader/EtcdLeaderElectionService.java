@@ -10,6 +10,8 @@ import io.etcd.jetcd.api.CampaignResponse;
 import io.etcd.jetcd.lease.LeaseKeepAliveResponse;
 import io.grpc.stub.StreamObserver;
 import org.springdoc.core.service.GenericResponseService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Service
 public class EtcdLeaderElectionService implements LeaderElectionService {
+    private static final Logger log = LoggerFactory.getLogger(EtcdLeaderElectionService.class);
     private Client client;
     private final KafkaListenerService kafkaListenerService;
     public EtcdLeaderElectionService(Client client,KafkaListenerService kafkaListenerService) {
@@ -42,26 +45,26 @@ public class EtcdLeaderElectionService implements LeaderElectionService {
                     .grant(10)
                     .get()
                     .getID();
-            System.out.println("Lease granted with ID: " + leaseId);
+            log.info("Lease granted with ID: {}", leaseId);
 
             leaseClient.keepAlive(leaseId, new StreamObserver<LeaseKeepAliveResponse>() {
                 @Override
                 public void onNext(LeaseKeepAliveResponse value) {
-                    System.out.println("Lease renewed with ID: " + value.getID() + ", TTL: " + value.getTTL());
+                    log.info("Lease renewed with ID: {}, TTL: {}", value.getID(), value.getTTL());
                     if(isLeader()) {
-                        System.out.println("Leader is :" + instanceId);
+                        log.info("Leader is: {}", instanceId);
                     }
                 }
 
                 @Override
                 public void onError(Throwable t) {
-                    System.err.println("Lease renewal failed: " + t.getMessage());
+                    log.error("Lease renewal failed: {}", t.getMessage(), t);
                     kafkaListenerService.startWorker();
                 }
 
                 @Override
                 public void onCompleted() {
-                    System.out.println("Lease renewal completed");
+                    log.info("Lease renewal completed");
                     kafkaListenerService.startWorker();
                 }
             });
@@ -73,7 +76,7 @@ public class EtcdLeaderElectionService implements LeaderElectionService {
             CompletableFuture<Void> future = electionClient
                     .campaign(electionName, leaseId, candidateValue)
                     .thenAccept(response -> {
-                        System.out.println("Successfully elected as leader with instance ID: " + instanceId);
+                        log.info("Successfully elected as leader with instance ID: {}", instanceId);
                         leader = true;
                         kafkaListenerService.stopWorker();
                     });

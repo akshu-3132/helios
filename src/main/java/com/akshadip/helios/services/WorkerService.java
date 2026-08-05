@@ -33,7 +33,7 @@ public class WorkerService {
             topics = "jobs",
             groupId = "worker-group")
     public void executeJob(JobMessage jobMessage) {
-        System.out.println("Received job message: " + jobMessage);
+        log.info("Received job message: {}", jobMessage);
         Job job = jobService.getJobById(jobMessage.getJobId());
         try {
             httpJobExecutor.executeJob(job.getPayload());
