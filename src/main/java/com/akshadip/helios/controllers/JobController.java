@@ -4,6 +4,7 @@ import com.akshadip.helios.dtos.JobRequestDto;
 import com.akshadip.helios.dtos.JobResponseDto;
 import com.akshadip.helios.models.Job;
 import com.akshadip.helios.services.JobService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,7 +20,7 @@ public class JobController {
     }
 
     @PostMapping("/jobs/create")
-    public JobResponseDto createJob(@RequestBody JobRequestDto jobRequestDto) {
+    public JobResponseDto createJob(@Valid @RequestBody JobRequestDto jobRequestDto) {
         return jobService.createJob(jobRequestDto);
     }
 
@@ -40,7 +41,7 @@ public class JobController {
     }
 
     @PostMapping("/jobs/create/bulk")
-    public List<JobResponseDto> createJobsBulk(@RequestBody java.util.List<JobRequestDto> jobRequestDtos) {
+    public List<JobResponseDto> createJobsBulk(@Valid @RequestBody java.util.List<JobRequestDto> jobRequestDtos) {
         return jobService.createJobsBulk(jobRequestDtos);
     }
 }
