@@ -6,10 +6,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -53,6 +56,24 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
         return Map.of("error", "Malformed request", "message", "Invalid request body: " + ex.getMostSpecificCause().getMessage());
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+    public Map<String, String> handleMethodNotAllowed(HttpRequestMethodNotSupportedException ex) {
+        return Map.of("error", "Method not allowed", "message", "HTTP method " + ex.getMethod() + " is not supported for this endpoint");
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    @ResponseStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+    public Map<String, String> handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
+        return Map.of("error", "Unsupported media type", "message", "Content type '" + ex.getContentType() + "' is not supported");
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleNoResourceFound(NoResourceFoundException ex) {
+        return Map.of("error", "Not found", "message", "The requested resource was not found");
     }
 
     @ExceptionHandler(RuntimeException.class)
