@@ -4,11 +4,11 @@ package com.akshadip.helios.services;
 import com.akshadip.helios.dtos.JobRequestDto;
 import com.akshadip.helios.dtos.JobResponseDto;
 import com.akshadip.helios.enums.JobStatus;
+import com.akshadip.helios.exceptions.JobNotFoundException;
 import com.akshadip.helios.mappers.JobMapper;
 import com.akshadip.helios.models.Job;
 import com.akshadip.helios.repositories.JobRepository;
 import com.akshadip.helios.scheduler.cron.CronCalculator;
-import jakarta.transaction.Transactional;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Service;
@@ -39,7 +39,7 @@ public class JobService {
     }
 
     public Job getJobById(UUID id) {
-        return jobRepository.findById(id).orElseThrow(() -> new RuntimeException("Job not found"));
+        return jobRepository.findById(id).orElseThrow(() -> new JobNotFoundException(id));
     }
 
     public List<Job> getAllJobs() {
@@ -48,7 +48,7 @@ public class JobService {
 
 
     public void deleteJob(UUID id) {
-        Job job = jobRepository.findById(id).orElseThrow(() -> new RuntimeException("Job not found"));
+        Job job = jobRepository.findById(id).orElseThrow(() -> new JobNotFoundException(id));
         jobRepository.delete(job);
     }
 
@@ -58,7 +58,7 @@ public class JobService {
 
 
     public void updateJobStatus(UUID jobId, JobStatus status){
-        Job job = jobRepository.findById(jobId).orElseThrow(() -> new RuntimeException("Job not found"));
+        Job job = jobRepository.findById(jobId).orElseThrow(() -> new JobNotFoundException(jobId));
         job.setStatus(status);
     }
 
