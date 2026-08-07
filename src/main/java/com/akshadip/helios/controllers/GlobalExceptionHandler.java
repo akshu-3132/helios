@@ -1,6 +1,11 @@
 package com.akshadip.helios.controllers;
 
+import com.akshadip.helios.exceptions.InvalidJobRequestException;
+import com.akshadip.helios.exceptions.JobNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -12,9 +17,23 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(JobNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleJobNotFound(JobNotFoundException ex) {
+        return Map.of("error", "Not found", "message", ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidJobRequestException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleInvalidJobRequest(InvalidJobRequestException ex) {
+        return Map.of("error", "Bad request", "message", ex.getMessage());
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleBadRequest(IllegalArgumentException ex) {
+    public Map<String, String> handleIllegalArgument(IllegalArgumentException ex) {
         return Map.of("error", "Bad request", "message", ex.getMessage());
     }
 
@@ -30,9 +49,23 @@ public class GlobalExceptionHandler {
         return Map.of("error", "Validation failed", "fields", fieldErrors);
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+        return Map.of("error", "Malformed request", "message", "Invalid request body: " + ex.getMostSpecificCause().getMessage());
+    }
+
     @ExceptionHandler(RuntimeException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> handleNotFound(RuntimeException ex) {
-        return Map.of("error", "Not found", "message", ex.getMessage());
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Map<String, String> handleRuntimeException(RuntimeException ex) {
+        log.error("Unhandled runtime exception", ex);
+        return Map.of("error", "Internal server error", "message", "An unexpected error occurred");
+    }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Map<String, String> handleException(Exception ex) {
+        log.error("Unhandled exception", ex);
+        return Map.of("error", "Internal server error", "message", "An unexpected error occurred");
     }
 }
